@@ -6,7 +6,7 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from app.core.config import UPLOAD_DIR
+from .core.config import UPLOAD_DIR
 
 load_dotenv()
 
@@ -25,8 +25,6 @@ def home():
 async def upload_file(file: UploadFile = File(...)):
 
     file_path = UPLOAD_DIR / file.filename
-
-    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
