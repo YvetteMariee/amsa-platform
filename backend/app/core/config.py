@@ -1,5 +1,9 @@
-from pathlib import Path
+from dotenv import load_dotenv
+import os
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent  # ajuste selon ton arborescence
-UPLOAD_DIR = BASE_DIR / "data" / "uploads"
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+load_dotenv()
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+UPLOAD_DIR = "data/uploads"
+CHROMA_DIR = "data/chroma"
