@@ -2,9 +2,9 @@ from fastapi import APIRouter, UploadFile, File
 import os
 import shutil
 
-from app.services.pdf_service import extract_text_from_pdf
-from app.services.embedding_service import create_embedding
-from app.db.chroma_client import collection
+from ...services.pdf_service import extract_text_from_pdf
+from ...services.embedding_service import create_embedding
+from ...db.chroma_client import collection
 
 router = APIRouter()
 

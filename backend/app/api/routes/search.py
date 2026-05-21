@@ -1,8 +1,20 @@
 from fastapi import APIRouter
-from services.pdf_service import search_in_all_pdfs
+from ...db.chroma_client import collection
 
 router = APIRouter()
 
 @router.get("/search")
 def search(keyword: str):
-    return search_in_all_pdfs(keyword)
+
+    try:
+        all_data = collection.get()
+
+        return {
+            "total_ids": len(all_data.get("ids", [])),
+            "sample_documents": all_data.get("documents", [])[:2]
+        }
+
+    except Exception as e:
+        return {
+            "error": str(e)
+        }
