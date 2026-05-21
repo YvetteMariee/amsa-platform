@@ -1,12 +1,17 @@
-from fastapi import APIRouter
-from app.services.pdf_service import search_in_all_pdfs
+import streamlit as st
+import requests
 
-router = APIRouter()
+st.title("Search PDF")
 
-@router.get("/search")
-def search(query: str):
-    results = search_in_all_pdfs(query)
-    return {
-        "query": query,
-        "results": results
-    }
+query = st.text_input("Recherche")
+
+if st.button("Search"):
+    response = requests.get(
+        "http://localhost:8000/search",
+        params={"q": query}
+    )
+
+    if response.status_code == 200:
+        st.write(response.json())
+    else:
+        st.error("Erreur backend")
