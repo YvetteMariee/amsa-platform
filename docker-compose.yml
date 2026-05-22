@@ -13,5 +13,35 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: amsa_backend
+    env_file: .env.example
+    environment:
+      DATABASE_URL: postgresql://amsa:amsa@db:5432/amsa_db
+      AMSA_SECRET_KEY: change-me-secret
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/app
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: amsa_frontend
+    environment:
+      VITE_API_URL: http://localhost:8000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+
 volumes:
   pgdata:

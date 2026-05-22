@@ -1,11 +1,11 @@
-import { useState } from "react"
+import { FormEvent, useState } from "react"
 import api from "../services/api"
 
 export default function Upload() {
   const [file, setFile] = useState<File | null>(null)
   const [message, setMessage] = useState("")
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!file) {
       setMessage("Veuillez sélectionner un fichier.")

@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 from app.db.session import engine
 
@@ -44,7 +45,7 @@ def ingest_dataframe(file_path: str, table_name: str):
     df = df.dropna(how="all")
     df = df.dropna(axis=1, how="all")
     df = _coerce_types(df)
-    df["source_file"] = file_path.split("/")[-1]
+    df["source_file"] = os.path.basename(file_path)
     df["anomaly_score"] = None
 
     df.to_sql(

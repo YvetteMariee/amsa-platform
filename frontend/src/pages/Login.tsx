@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { FormEvent, useState } from "react"
 import api from "../services/api"
 
 interface Props {
@@ -10,7 +10,7 @@ export default function Login({ onLogin }: Props) {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     try {
       const formData = new URLSearchParams()
