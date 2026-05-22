@@ -7,6 +7,12 @@ from app.api.routes.search import router as search_router
 from app.api.routes.ask import router as ask_router
 from app.api.routes.ingestion import router as ingestion_router
 from app.api.routes.analytics import router as analytics_router
+from app.api.routes.alerts import router as alerts_router
+from app.api.routes.auth import router as auth_router
+from app.api.routes.users import router as users_router
+from app.api.routes.audit import router as audit_router
+from app.api.routes.reports import router as reports_router
+from app.api.routes.supervision import router as supervision_router
 
 from app.db.session import engine
 from app.db.base import Base
@@ -33,6 +39,12 @@ app.include_router(search_router)
 app.include_router(ask_router)
 app.include_router(ingestion_router)
 app.include_router(analytics_router)
+app.include_router(alerts_router)
+app.include_router(auth_router)
+app.include_router(users_router)
+app.include_router(audit_router)
+app.include_router(reports_router)
+app.include_router(supervision_router)
 
 @app.get("/")
 def root():

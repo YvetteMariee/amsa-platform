@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 import pandas as pd
+from sqlalchemy import text
 
 from app.db.session import engine
 from app.services.anomaly_detection import detect_anomalies
@@ -59,6 +60,20 @@ def get_analytics(table_name: str):
     # IA ANOMALY DETECTION
     # =====================
     ai_detection = detect_anomalies(df)
+
+    # persist anomaly scores back to DB when possible
+    try:
+        scores = ai_detection.get("scores")
+        if scores is not None and "id" in df.columns:
+            conn = engine.connect()
+            for idx, score in scores.items():
+                row = df.loc[idx]
+                if "id" in row and row["id"] is not None:
+                    stmt = text("UPDATE market_data SET anomaly_score = :score WHERE id = :id")
+                    conn.execute(stmt, {"score": float(score), "id": int(row["id"])})
+            conn.close()
+    except Exception:
+        pass
 
     # =====================
     # RETURN FINAL PIPELINE

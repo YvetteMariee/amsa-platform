@@ -1,52 +1,72 @@
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 import os
 import shutil
+from typing import Dict
 
-from ...services.pdf_service import extract_text_from_pdf
-from ...services.embedding_service import create_embedding
-from ...db.chroma_client import collection
+from ...services.pdf_parser import parse_pdf
+from ...services.csv_ingestion import ingest_dataframe
+from ...services.security import require_roles
+from ...db.session import engine
 
 router = APIRouter()
 
-UPLOAD_DIR = "data/uploads"
+BASE_APP_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+UPLOAD_DIR = os.path.join(BASE_APP_DIR, "data", "uploads")
+
+ALLOWED_EXT = {".pdf", ".csv", ".xlsx", ".xls"}
 
 
-def chunk_text(text, chunk_size=500):
-    return [
-        text[i:i + chunk_size]
-        for i in range(0, len(text), chunk_size)
-    ]
+def _ensure_upload_dir():
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 @router.post("/upload")
-async def upload_pdf(file: UploadFile = File(...)):
+async def upload_file(file: UploadFile = File(...), current_user=Depends(require_roles(["ADMIN", "SUPERVISOR", "ANALYST"]))):
+    """Save an uploaded file, validate type, then route to ingestion.
 
-    # 1. save file
-    file_path = os.path.join(UPLOAD_DIR, file.filename)
+    PDF -> parse tables and attempt to append to `market_data` table
+    CSV/XLSX -> load and write to `market_data` via ingest_dataframe
+    """
+    _ensure_upload_dir()
 
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    filename = file.filename
+    if not filename:
+        raise HTTPException(status_code=400, detail="Missing filename")
 
-    # 2. extract text
-    text = extract_text_from_pdf(file_path)
+    _, ext = os.path.splitext(filename)
+    ext = ext.lower()
 
-    # 3. chunk text
-    chunks = chunk_text(text)
+    if ext not in ALLOWED_EXT:
+        raise HTTPException(status_code=400, detail=f"Unsupported file type: {ext}")
 
-    # 4. embeddings par chunk
-    embeddings = [
-        create_embedding(chunk)
-        for chunk in chunks
-    ]
+    file_path = os.path.join(UPLOAD_DIR, filename)
 
-    # 5. store in Chroma
-    collection.add(
-        documents=chunks,
-        embeddings=embeddings,
-        ids=[f"{file.filename}_{i}" for i in range(len(chunks))]
-    )
+    # Save uploaded file
+    try:
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save file: {e}")
 
-    return {
-        "message": "upload + indexing OK",
-        "chunks": len(chunks)
-    }
+    # Route ingestion based on type
+    try:
+        if ext == ".pdf":
+            df = parse_pdf(file_path)
+            # attempt to persist to PostgreSQL market_data table
+            try:
+                df.to_sql("market_data", engine, if_exists="append", index=False)
+                rows = len(df)
+            except Exception:
+                rows = len(df)
+
+            return {"message": "pdf_ingested", "file": filename, "rows": rows}
+
+        else:
+            # csv / xlsx
+            res = ingest_dataframe(file_path, table_name="market_data")
+            return {"message": "table_ingested", "file": filename, **res}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
