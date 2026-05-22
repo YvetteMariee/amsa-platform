@@ -1,30 +1,15 @@
-from fastapi import APIRouter, UploadFile, File
-import os
-
-from app.services.csv_ingestion import ingest_dataframe
+from fastapi import APIRouter
+from app.services.pdf_ingestion import process_all_pdfs
 
 router = APIRouter()
 
-UPLOAD_DIR = "app/data/uploads"
 
-@router.post("/ingest")
-async def ingest(file: UploadFile = File(...)):
+@router.get("/ingest-pdfs")
+def ingest_pdfs():
 
-    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    df = process_all_pdfs()
 
-    file_path = os.path.join(
-        UPLOAD_DIR,
-        file.filename
-    )
-
-    with open(file_path, "wb") as f:
-        f.write(await file.read())
-
-    table_name = file.filename.split(".")[0].lower()
-
-    result = ingest_dataframe(
-        file_path,
-        table_name
-    )
-
-    return result
+    return {
+        "rows": len(df),
+        "data": df.head().to_dict()
+    }
