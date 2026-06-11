@@ -25,11 +25,11 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className="min-h-screen bg-slate-50 text-slate-800">
       <div className="flex flex-col md:flex-row">
         <Sidebar onLogout={handleLogout} />
-        <main className="flex-1 p-6">
-          <div className="mb-6 rounded-3xl bg-slate-900/80 p-6 shadow-2xl shadow-slate-900/20">
+        <main className="flex-1 p-6 bg-slate-50">
+          <div className="mb-6 rounded-2xl bg-white p-6 shadow-sm border border-slate-200">
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/upload" element={<Upload />} />

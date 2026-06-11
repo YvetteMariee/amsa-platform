@@ -10,5 +10,5 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(status_code=401, detail='Invalid credentials')
-    token = create_access_token({"sub": user.username, "role": user.role, "user_id": user.id})
+    token = create_access_token({"sub": user.email, "role": user.role, "user_id": user.id})
     return {"access_token": token, "token_type": "bearer"}
