@@ -42,6 +42,7 @@ services:
       - backend
     volumes:
       - ./frontend:/app
+      - /app/node_modules        # ← seule ligne ajoutée
 
 volumes:
   pgdata:

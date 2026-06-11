@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 import traceback
 
 from app.api.routes.upload import router as upload_router
@@ -17,7 +18,16 @@ from app.api.routes.supervision import router as supervision_router
 from app.db.session import engine
 from app.db.base import Base
 
-app = FastAPI()
+app = FastAPI(title="AMSA - African Market Surveillance AI")
+
+# CORS — autorise le frontend React à appeler le backend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 def startup():
