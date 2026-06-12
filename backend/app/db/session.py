@@ -2,7 +2,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./amsa.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://amsa:amsa@localhost:5432/amsa_db")
 
 engine = create_engine(
     DATABASE_URL,
