@@ -7,8 +7,9 @@ interface Props {
 const links = [
   { href: "/", label: "Dashboard" },
   { href: "/upload", label: "Upload" },
-  { href: "/alerts", label: "Alerts" },
-  { href: "/reports", label: "Reports" }
+  { href: "/alerts", label: "Alertes" },
+  { href: "/reports", label: "Rapports" },
+  { href: "/search", label: "Recherche & IA" },
 ]
 
 export default function Sidebar({ onLogout }: Props) {

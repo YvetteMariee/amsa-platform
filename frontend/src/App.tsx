@@ -4,6 +4,7 @@ import Dashboard from "./pages/Dashboard"
 import Upload from "./pages/Upload"
 import Alerts from "./pages/Alerts"
 import Reports from "./pages/Reports"
+import Search from "./pages/Search"
 import Login from "./pages/Login"
 import Sidebar from "./components/Sidebar"
 
@@ -35,6 +36,7 @@ function App() {
               <Route path="/upload" element={<Upload />} />
               <Route path="/alerts" element={<Alerts />} />
               <Route path="/reports" element={<Reports />} />
+              <Route path="/search" element={<Search />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </div>
