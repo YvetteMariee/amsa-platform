@@ -1,6 +1,8 @@
+import os
+import logging
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-import traceback
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes.upload import router as upload_router
 from app.api.routes.search import router as search_router
@@ -13,27 +15,48 @@ from app.api.routes.users import router as users_router
 from app.api.routes.audit import router as audit_router
 from app.api.routes.reports import router as reports_router
 from app.api.routes.supervision import router as supervision_router
+from app.api.routes.ws import router as ws_router
 
 from app.db.session import engine
 from app.db.base import Base
 
-app = FastAPI()
+logger = logging.getLogger(__name__)
+
+app = FastAPI(
+    title="AMSA - African Market Surveillance AI",
+    description="Plateforme de surveillance des marchés financiers CEMAC/BVMAC",
+    version="0.2.0",
+)
+
+ALLOWED_ORIGINS = os.getenv(
+    "CORS_ORIGINS",
+    "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173"
+).split(",")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.on_event("startup")
 def startup():
+    from app.models import market_data, alerts, annotations, audit_logs, users, reports  # noqa: F401
     Base.metadata.create_all(bind=engine)
+
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    logger.exception("Unhandled error on %s %s", request.method, request.url.path)
     return JSONResponse(
         status_code=500,
-        content={
-            "error": str(exc),
-            "detail": traceback.format_exc()
-        }
+        content={"error": "Internal server error"},
     )
 
-# ROUTES
+
 app.include_router(upload_router)
 app.include_router(search_router)
 app.include_router(ask_router)
@@ -45,6 +68,8 @@ app.include_router(users_router)
 app.include_router(audit_router)
 app.include_router(reports_router)
 app.include_router(supervision_router)
+app.include_router(ws_router)
+
 
 @app.get("/")
 def root():

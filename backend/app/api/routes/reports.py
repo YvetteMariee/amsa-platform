@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from sqlalchemy import text
 from app.db.session import engine
 from app.services.security import require_roles
 import pandas as pd
@@ -8,7 +9,7 @@ router = APIRouter()
 
 @router.get("/reports")
 def get_reports(current_user=Depends(require_roles(["ADMIN", "SUPERVISOR", "ANALYST"]))):
-    query = "SELECT date, instrument, prix, volume, compartiment FROM market_data ORDER BY date DESC LIMIT 200"
+    query = text("SELECT date, instrument, prix, volume, compartiment FROM market_data ORDER BY date DESC LIMIT 200")
     df = pd.read_sql(query, engine)
     if df.empty:
         return {"reports": []}
